@@ -1,17 +1,25 @@
 import { GoogleGenAI } from "@google/genai";
 
-export async function generateBannerImage(prompt: string) {
+export async function generateBannerImage(prompt: string, referenceFile?: { data: string, mimeType: string }) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   
+  const parts: any[] = [{ text: prompt }];
+  
+  if (referenceFile) {
+    parts.unshift({
+      inlineData: {
+        data: referenceFile.data,
+        mimeType: referenceFile.mimeType
+      }
+    });
+    parts.push({ text: "Use the uploaded image/video as a reference for the style, tone, and lighting of the scene." });
+  }
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3.1-flash-image-preview',
       contents: {
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
+        parts: parts,
       },
       config: {
         imageConfig: {
